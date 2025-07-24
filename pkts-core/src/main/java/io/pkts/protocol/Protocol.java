@@ -24,6 +24,7 @@ public enum Protocol {
     RTP("rtp", Layer.LAYER_7),
     RTCP("rtcp", Layer.LAYER_7),
     ARP("arp", Layer.LAYER_3),
+    VRT("vrt", Layer.LAYER_7),
     UNKNOWN("unknown", null);
 
     private final String name;
