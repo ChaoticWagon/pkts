@@ -2,7 +2,7 @@ package io.pkts.packet.vrt;
 
 import io.pkts.packet.TransportPacket;
 import io.pkts.packet.impl.ApplicationPacket;
-import io.pkts.packet.vrt.headers.ClassId;
+import io.pkts.packet.vrt.headers.VrtClassIdentifier;
 import io.pkts.packet.vrt.headers.VrtPacketHeader;
 
 public interface VrtPacket extends ApplicationPacket {
@@ -16,10 +16,10 @@ public interface VrtPacket extends ApplicationPacket {
     int getStreamId();
 
     default boolean hasClassId() {
-        return getHeader().hasClass();
+        return getHeader().hasClassId();
     }
 
-    ClassId getClassId();
+    VrtClassIdentifier getClassId();
 
     boolean hasIntegerTimestamp();
 

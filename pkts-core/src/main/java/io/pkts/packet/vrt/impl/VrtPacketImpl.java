@@ -6,7 +6,7 @@ import io.pkts.packet.PacketParseException;
 import io.pkts.packet.TransportPacket;
 import io.pkts.packet.impl.AbstractPacket;
 import io.pkts.packet.vrt.VrtPacket;
-import io.pkts.packet.vrt.headers.ClassId;
+import io.pkts.packet.vrt.headers.VrtClassIdentifier;
 import io.pkts.packet.vrt.headers.VrtPacketHeader;
 import io.pkts.protocol.Protocol;
 
@@ -57,7 +57,7 @@ public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
     }
 
     @Override
-    public ClassId getClassId() {
+    public VrtClassIdentifier getClassId() {
         return null;
     }
 

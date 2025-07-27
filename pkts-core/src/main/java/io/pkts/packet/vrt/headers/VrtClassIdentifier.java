@@ -2,7 +2,7 @@ package io.pkts.packet.vrt.headers;
 
 import io.pkts.buffer.Buffer;
 
-public class ClassId {
+public class VrtClassIdentifier {
 
     // Word 1 masks
     private static final int RESERVED1_MASK    = 0x80000000;  // bit 31
@@ -17,7 +17,7 @@ public class ClassId {
     private final int word1;
     private final int word2;
 
-    public ClassId(final Buffer buffer) {
+    public VrtClassIdentifier(final Buffer buffer) {
         this.word1 = (int) buffer.getUnsignedInt(0);
         this.word2 = (int) buffer.getUnsignedInt(1);
 
