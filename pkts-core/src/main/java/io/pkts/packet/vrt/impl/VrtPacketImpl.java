@@ -25,22 +25,27 @@ public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
         this.headers = headers;
         this.payload = payload;
     }
+
     @Override
     public long getArrivalTime() {
         return 0;
     }
+
     @Override
     public void write(OutputStream out, Buffer payload) throws IOException {
         throw new UnsupportedOperationException("Not supported.");
     }
+
     @Override
     public Packet clone() {
         return null;
     }
+
     @Override
     public Packet getNextPacket() throws IOException, PacketParseException {
         return null;
     }
+
     @Override
     public VrtPacketHeader getHeader() {
         return null;
@@ -75,6 +80,7 @@ public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
     public int getFractionalTimestamp() {
         return 0;
     }
+
     @Override
     public byte[] payload() {
         return new byte[0];
