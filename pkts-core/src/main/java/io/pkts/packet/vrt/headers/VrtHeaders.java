@@ -8,6 +8,7 @@ public record VrtHeaders(
         Optional<VrtClassIdentifier> classId,
         Optional<Integer> integerTimestamp,
         Optional<Long> longTimestamp,
+        Optional<VrtCif> cif_fields,
         Optional<VrtTrailer> trailer
 
 ) {}

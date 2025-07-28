@@ -21,7 +21,7 @@ public class VrtClassIdentifier {
         this.word1 = (int) buffer.getUnsignedInt(0);
         this.word2 = (int) buffer.getUnsignedInt(1);
 
-        // Validate reserved bits per Rule 5.1.3‑5
+        // Validate reserved bits per Rule 5.1.3‑5
         if ((word1 & RESERVED1_MASK) != 0) {
             throw new IllegalArgumentException("Reserved bit in Class ID word1 must be zero");
         }

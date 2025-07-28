@@ -13,7 +13,7 @@ public class VrtTrailer {
     private final int word;
 
     public VrtTrailer(VrtType type, Buffer buffer) {
-        this.word = (int) buffer.getUnsignedInt(0);
+        this.word = (int) buffer.readUnsignedInt();
     }
 
     // enable bit getters

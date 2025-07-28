@@ -17,7 +17,7 @@ public class VrtPacketHeader {
     private final int word;
 
     public VrtPacketHeader(final Buffer buffer) {
-        this.word = (int) buffer.getUnsignedInt(0);
+        this.word = (int) buffer.readUnsignedInt();
     }
 
     /**
