@@ -18,15 +18,15 @@ public class VrtClassIdentifier {
     private final int word2;
 
     public VrtClassIdentifier(final Buffer buffer) {
-        this.word1 = (int) buffer.getUnsignedInt(0);
-        this.word2 = (int) buffer.getUnsignedInt(1);
+        this.word1 = (int) buffer.readUnsignedInt();
+        this.word2 = (int) buffer.readUnsignedInt();
 
         // Validate reserved bits per Rule 5.1.3‑5
         if ((word1 & RESERVED1_MASK) != 0) {
-            throw new IllegalArgumentException("Reserved bit in Class ID word1 must be zero");
+            throw new IllegalArgumentException("Reserved bit in Class ID word1 must be zero" + Integer.toHexString(word1));
         }
         if ((word2 & RESERVED2_MASK) != 0) {
-            throw new IllegalArgumentException("Reserved bits in Class ID word2 must be zero");
+            throw new IllegalArgumentException("Reserved bits in Class ID word2 must be zero" + Integer.toHexString(word2));
         }
     }
 

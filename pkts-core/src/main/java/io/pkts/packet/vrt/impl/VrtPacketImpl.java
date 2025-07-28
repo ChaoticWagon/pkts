@@ -6,9 +6,7 @@ import io.pkts.packet.PacketParseException;
 import io.pkts.packet.TransportPacket;
 import io.pkts.packet.impl.AbstractPacket;
 import io.pkts.packet.vrt.VrtPacket;
-import io.pkts.packet.vrt.headers.VrtClassIdentifier;
 import io.pkts.packet.vrt.headers.VrtHeaders;
-import io.pkts.packet.vrt.headers.VrtPacketHeader;
 import io.pkts.protocol.Protocol;
 
 import java.io.IOException;
@@ -16,13 +14,11 @@ import java.io.OutputStream;
 
 public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
 
-    private final TransportPacket parent;
     private final VrtHeaders headers;
     private final Buffer payload;
 
     public VrtPacketImpl(final TransportPacket parent, final VrtHeaders headers, final Buffer payload) {
         super(Protocol.VRT, parent, payload);
-        this.parent = parent;
         this.headers = headers;
         this.payload = payload;
     }
@@ -48,43 +44,13 @@ public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
     }
 
     @Override
-    public VrtPacketHeader getHeader() {
-        return null;
+    public VrtHeaders getHeaders() {
+        return headers;
     }
 
     @Override
-    public int getStreamId() {
-        return 0;
-    }
-
-    @Override
-    public VrtClassIdentifier getClassId() {
-        return null;
-    }
-
-    @Override
-    public boolean hasIntegerTimestamp() {
-        return false;
-    }
-
-    @Override
-    public int getIntegerTimestamp() {
-        return 0;
-    }
-
-    @Override
-    public boolean hasFractionalTimestamp() {
-        return false;
-    }
-
-    @Override
-    public int getFractionalTimestamp() {
-        return 0;
-    }
-
-    @Override
-    public byte[] payload() {
-        return new byte[0];
+    public Buffer payload() {
+        return payload;
     }
 
     @Override
