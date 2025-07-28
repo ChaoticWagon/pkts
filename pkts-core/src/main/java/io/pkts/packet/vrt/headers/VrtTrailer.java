@@ -1,7 +1,6 @@
 package io.pkts.packet.vrt.headers;
 
 import io.pkts.buffer.Buffer;
-import io.pkts.packet.vrt.VrtType;
 
 public class VrtTrailer {
 
@@ -12,7 +11,7 @@ public class VrtTrailer {
 
     private final int word;
 
-    public VrtTrailer(VrtType type, Buffer buffer) {
+    public VrtTrailer(Buffer buffer) {
         this.word = (int) buffer.readUnsignedInt();
     }
 

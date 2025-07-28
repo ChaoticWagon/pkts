@@ -10,5 +10,4 @@ public record VrtHeaders(
         Optional<Long> longTimestamp,
         Optional<VrtCif> cif_fields,
         Optional<VrtTrailer> trailer
-
 ) {}

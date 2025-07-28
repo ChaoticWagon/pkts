@@ -7,6 +7,7 @@ import io.pkts.packet.TransportPacket;
 import io.pkts.packet.impl.AbstractPacket;
 import io.pkts.packet.vrt.VrtPacket;
 import io.pkts.packet.vrt.headers.VrtClassIdentifier;
+import io.pkts.packet.vrt.headers.VrtHeaders;
 import io.pkts.packet.vrt.headers.VrtPacketHeader;
 import io.pkts.protocol.Protocol;
 
@@ -16,10 +17,10 @@ import java.io.OutputStream;
 public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
 
     private final TransportPacket parent;
-    private final Buffer headers;
+    private final VrtHeaders headers;
     private final Buffer payload;
 
-    public VrtPacketImpl(final TransportPacket parent, final Buffer payload, final Buffer headers) {
+    public VrtPacketImpl(final TransportPacket parent, final VrtHeaders headers, final Buffer payload) {
         super(Protocol.VRT, parent, payload);
         this.parent = parent;
         this.headers = headers;
