@@ -2,9 +2,11 @@ package io.pkts.framer;
 
 import io.pkts.buffer.Buffer;
 import io.pkts.packet.TransportPacket;
+import io.pkts.packet.vrt.SignalPayloadFormat;
 import io.pkts.packet.vrt.VrtPacket;
 import io.pkts.packet.vrt.headers.*;
 import io.pkts.packet.vrt.impl.VrtPacketImpl;
+import io.pkts.packet.vrt.payload.SignalDataPayload;
 import io.pkts.protocol.Protocol;
 
 import java.io.IOException;
@@ -12,11 +14,26 @@ import java.util.Optional;
 
 public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
 
+    /* ------------------------------------------------------------------
+     * Helpers
+     * ---------------------------------------------------------------- */
+    private static int ensureReadable(Buffer buf, int bytes) {
+        if (buf.getReadableBytes() >= bytes) return bytes;
+        buf.markReaderIndex();
+        try {
+            buf.readBytes(bytes);
+        } catch (IndexOutOfBoundsException | IOException e) {
+            return buf.getReadableBytes();
+        } finally {
+            buf.resetReaderIndex();
+        }
+        return buf.getReadableBytes();
+    }
+
     @Override
     public Protocol getProtocol() {
         return Protocol.VRT;
     }
-
 
     /* ------------------------------------------------------------------
      *  1.  Quick “sniff” – is this likely a VRT packet?
@@ -71,7 +88,7 @@ public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
         final int type = header.getPacketTypeRaw();   // raw 0‑15
         final boolean streamIdMandatory =
                 type == 1 || type == 3 ||          // signal/extension w/ SID
-                type == 4 || type == 5;            // context packets
+                        type == 4 || type == 5;            // context packets
         if (streamIdMandatory) {
             streamId = Optional.of((int) buffer.readUnsignedInt());
             wordsRead++;
@@ -120,6 +137,26 @@ public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
 
         /* ----------  Slice payload ---------------------------------- */
         final Buffer payload = buffer.readBytes(wordsLeft * 4);
+        Optional<SignalDataPayload> sdp = Optional.empty();
+
+        if (type == 0 || type == 1) {  // Signal‑Data pkt
+            SignalPayloadFormat fmt = new SignalPayloadFormat(
+                    /* ipfBits       = */ 16,                         // 16 bits per item‑packing‑field (i.e. each I or each Q)
+                    /* dataItemBits  = */ 16,                         // each sample is 16 bits
+                    /* eventTagBits  = */ 0,                          // no event tags
+                    /* channelTagBits= */ 0,                          // no channel tags
+                    SignalPayloadFormat.PackingMode.PROCESSING_EFFICIENT,                // 2 samples per 32‑bit word
+                    SignalPayloadFormat.SampleKind.COMPLEX_CARTESIAN,                    // I then Q
+                    SignalPayloadFormat.ItemFormat.S_FIX,                                // signed fixed‑point
+                    /* repeatCount   = */ 1,                          // no sample‑component or channel repeating
+                    /* vectorWidth   = */ 0                           // no N‑dimensional vectors here
+            );
+            int padBits = classId.map(VrtClassIdentifier::getPadBitCount).orElse(0);
+            sdp = Optional.of(new SignalDataPayload(payload, fmt, padBits));
+
+            // attach to headers or the VrtPacket as you prefer
+        }
+
         wordsRead += wordsLeft;
 
         /* ----------  Optional trailer -------------------------------- */
@@ -137,22 +174,6 @@ public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
         /* ----------  Wrap everything into the record --------------- */
         VrtHeaders headers = new VrtHeaders(header, streamId, classId, intTs, fracTs, cif, trailer);
 
-        return new VrtPacketImpl(parent, headers, payload);
-    }
-
-    /* ------------------------------------------------------------------
-     * Helpers
-     * ---------------------------------------------------------------- */
-    private static int ensureReadable(Buffer buf, int bytes) {
-        if (buf.getReadableBytes() >= bytes) return bytes;
-        buf.markReaderIndex();
-        try {
-            buf.readBytes(bytes);
-        } catch (IndexOutOfBoundsException | IOException e) {
-            return buf.getReadableBytes();
-        } finally {
-            buf.resetReaderIndex();
-        }
-        return buf.getReadableBytes();
+        return new VrtPacketImpl(parent, headers, payload, sdp);
     }
 }

@@ -7,20 +7,24 @@ import io.pkts.packet.TransportPacket;
 import io.pkts.packet.impl.AbstractPacket;
 import io.pkts.packet.vrt.VrtPacket;
 import io.pkts.packet.vrt.headers.VrtHeaders;
+import io.pkts.packet.vrt.payload.SignalDataPayload;
 import io.pkts.protocol.Protocol;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Optional;
 
 public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
 
     private final VrtHeaders headers;
     private final Buffer payload;
+    private final Optional<SignalDataPayload> sigPayload;
 
-    public VrtPacketImpl(final TransportPacket parent, final VrtHeaders headers, final Buffer payload) {
+    public VrtPacketImpl(final TransportPacket parent, final VrtHeaders headers, final Buffer payload, final Optional<SignalDataPayload> sigPayload) {
         super(Protocol.VRT, parent, payload);
         this.headers = headers;
         this.payload = payload;
+        this.sigPayload = sigPayload;
     }
 
     @Override
@@ -51,6 +55,11 @@ public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
     @Override
     public Buffer payload() {
         return payload;
+    }
+
+    @Override
+    public Optional<SignalDataPayload> getSignalDataPayload() {
+        return sigPayload;
     }
 
     @Override

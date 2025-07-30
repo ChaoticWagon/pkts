@@ -4,7 +4,7 @@ import java.util.Optional;
 
 public record VrtHeaders(
         VrtPacketHeader packetHeader,
-        Optional<Integer> streamld,
+        Optional<Integer> streamId,
         Optional<VrtClassIdentifier> classId,
         Optional<Integer> integerTimestamp,
         Optional<Long> longTimestamp,
