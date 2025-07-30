@@ -7,6 +7,7 @@ import io.pkts.packet.vrt.VrtPacket;
 import io.pkts.packet.vrt.headers.*;
 import io.pkts.packet.vrt.impl.VrtPacketImpl;
 import io.pkts.packet.vrt.payload.SignalDataPayload;
+import io.pkts.packet.vrt.payload.VrtContextSession;
 import io.pkts.protocol.Protocol;
 
 import java.io.IOException;
@@ -86,9 +87,8 @@ public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
         /* ----------  Optional Stream‑ID ----------------------------- */
         Optional<Integer> streamId = Optional.empty();
         final int type = header.getPacketTypeRaw();   // raw 0‑15
-        final boolean streamIdMandatory =
-                type == 1 || type == 3 ||          // signal/extension w/ SID
-                        type == 4 || type == 5;            // context packets
+        final boolean streamIdMandatory = type == 1 || type == 3 ||          // signal/extension w/ SID
+                type == 4 || type == 5;            // context packets
         if (streamIdMandatory) {
             streamId = Optional.of((int) buffer.readUnsignedInt());
             wordsRead++;
@@ -118,19 +118,32 @@ public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
         }
 
         /* ----------  Context‑Indicator Fields ----------------------- */
+
+        int totalWords = header.getPacketSize();
+        int wordsLeft = totalWords - wordsRead;
         Optional<VrtCif> cif = Optional.empty();
+        Optional<VrtContextSession> ctx = Optional.empty();
         if (type == 4 || type == 5) {                      // (Ext)Context packet
             cif = Optional.of(new VrtCif(buffer));
             wordsRead += cif.get().getPresentLevels().size();
+
+            int ctxWords = totalWords - wordsRead;
+            Buffer ctxFields = buffer.readBytes(wordsLeft * 4);  // slice that holds the Context fields
+
+            wordsRead += ctxWords;
+            VrtContextSession session = new VrtContextSession(cif.get(), ctxFields);
+            ctx = Optional.of(session);
         }
 
+
+
         /* ----------  Compute payload length & optional trailer ------ */
-        final int totalWords = header.getPacketSize();
+        totalWords = header.getPacketSize();
         final boolean trailerExpected = (type == 0 || type == 1 || type == 2 || type == 3) &&   // data packets
                 ((header.getIndicatorsField() & 0x4) != 0);            // bit 26 == TrailerIncluded
         final int trailerWords = trailerExpected ? 1 : 0;
 
-        final int wordsLeft = totalWords - wordsRead - trailerWords;
+        wordsLeft = totalWords - wordsRead - trailerWords;
         if (wordsLeft < 0) {
             throw new IOException("Malformed VRT packet – size fields inconsistent");
         }
@@ -138,25 +151,23 @@ public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
         /* ----------  Slice payload ---------------------------------- */
         final Buffer payload = buffer.readBytes(wordsLeft * 4);
         Optional<SignalDataPayload> sdp = Optional.empty();
-
-        if (type == 0 || type == 1) {  // Signal‑Data pkt
-            SignalPayloadFormat fmt = new SignalPayloadFormat(
-                    /* ipfBits       = */ 16,                         // 16 bits per item‑packing‑field (i.e. each I or each Q)
-                    /* dataItemBits  = */ 16,                         // each sample is 16 bits
-                    /* eventTagBits  = */ 0,                          // no event tags
-                    /* channelTagBits= */ 0,                          // no channel tags
-                    SignalPayloadFormat.PackingMode.PROCESSING_EFFICIENT,                // 2 samples per 32‑bit word
-                    SignalPayloadFormat.SampleKind.COMPLEX_CARTESIAN,                    // I then Q
-                    SignalPayloadFormat.ItemFormat.S_FIX,                                // signed fixed‑point
-                    /* repeatCount   = */ 1,                          // no sample‑component or channel repeating
-                    /* vectorWidth   = */ 0                           // no N‑dimensional vectors here
-            );
-            int padBits = classId.map(VrtClassIdentifier::getPadBitCount).orElse(0);
-            sdp = Optional.of(new SignalDataPayload(payload, fmt, padBits));
-
-            // attach to headers or the VrtPacket as you prefer
+        if (ctx.isEmpty()) {
+            if (type == 0 || type == 1) {  // Signal‑Data pkt
+                SignalPayloadFormat fmt = new SignalPayloadFormat(
+                        /* ipfBits       = */ 16,                         // 16 bits per item‑packing‑field (i.e. each I or each Q)
+                        /* dataItemBits  = */ 16,                         // each sample is 16 bits
+                        /* eventTagBits  = */ 0,                          // no event tags
+                        /* channelTagBits= */ 0,                          // no channel tags
+                        SignalPayloadFormat.PackingMode.PROCESSING_EFFICIENT,                // 2 samples per 32‑bit word
+                        SignalPayloadFormat.SampleKind.COMPLEX_CARTESIAN,                    // I then Q
+                        SignalPayloadFormat.ItemFormat.S_FIX,                                // signed fixed‑point
+                        /* repeatCount   = */ 1,                          // no sample‑component or channel repeating
+                        /* vectorWidth   = */ 0                           // no N‑dimensional vectors here
+                );
+                int padBits = classId.map(VrtClassIdentifier::getPadBitCount).orElse(0);
+                sdp = Optional.of(new SignalDataPayload(payload, fmt, padBits));
+            }
         }
-
         wordsRead += wordsLeft;
 
         /* ----------  Optional trailer -------------------------------- */
@@ -174,6 +185,6 @@ public final class VRTFramer implements Framer<TransportPacket, VrtPacket> {
         /* ----------  Wrap everything into the record --------------- */
         VrtHeaders headers = new VrtHeaders(header, streamId, classId, intTs, fracTs, cif, trailer);
 
-        return new VrtPacketImpl(parent, headers, payload, sdp);
+        return new VrtPacketImpl(parent, headers, payload, sdp, ctx);
     }
 }

@@ -8,6 +8,7 @@ import io.pkts.packet.impl.AbstractPacket;
 import io.pkts.packet.vrt.VrtPacket;
 import io.pkts.packet.vrt.headers.VrtHeaders;
 import io.pkts.packet.vrt.payload.SignalDataPayload;
+import io.pkts.packet.vrt.payload.VrtContextSession;
 import io.pkts.protocol.Protocol;
 
 import java.io.IOException;
@@ -19,12 +20,14 @@ public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
     private final VrtHeaders headers;
     private final Buffer payload;
     private final Optional<SignalDataPayload> sigPayload;
+    private final Optional<VrtContextSession> ctx;
 
-    public VrtPacketImpl(final TransportPacket parent, final VrtHeaders headers, final Buffer payload, final Optional<SignalDataPayload> sigPayload) {
+    public VrtPacketImpl(final TransportPacket parent, final VrtHeaders headers, final Buffer payload, final Optional<SignalDataPayload> sigPayload, Optional<VrtContextSession> ctx) {
         super(Protocol.VRT, parent, payload);
         this.headers = headers;
         this.payload = payload;
         this.sigPayload = sigPayload;
+        this.ctx = ctx;
     }
 
     @Override
@@ -60,6 +63,11 @@ public class VrtPacketImpl extends AbstractPacket implements VrtPacket {
     @Override
     public Optional<SignalDataPayload> getSignalDataPayload() {
         return sigPayload;
+    }
+
+    @Override
+    public Optional<VrtContextSession> getContextSession() {
+        return ctx;
     }
 
     @Override

@@ -5,6 +5,7 @@ import io.pkts.packet.TransportPacket;
 import io.pkts.packet.impl.ApplicationPacket;
 import io.pkts.packet.vrt.headers.VrtHeaders;
 import io.pkts.packet.vrt.payload.SignalDataPayload;
+import io.pkts.packet.vrt.payload.VrtContextSession;
 
 import java.util.Optional;
 
@@ -15,6 +16,8 @@ public interface VrtPacket extends ApplicationPacket {
     Buffer payload();
 
     Optional<SignalDataPayload> getSignalDataPayload();
+
+    Optional<VrtContextSession> getContextSession();
 
     @Override
     TransportPacket getParentPacket();
